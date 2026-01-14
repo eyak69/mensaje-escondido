@@ -1,6 +1,7 @@
 import React from 'react';
 import TextHider from './components/TextHider';
 import MatrixRain from './components/MatrixRain';
+import { version } from '../package.json';
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
         </main>
 
         <footer className="mt-12 text-center text-xs text-matrix-dark">
-          SYSTEM_STATUS: ONLINE | ENCRYPTION: AES-GCM (Key: Last Word)
+          SYSTEM_STATUS: ONLINE | ENCRYPTION: AES-GCM (Key: Last Word) | Version {version}
         </footer>
       </div>
     </div>
