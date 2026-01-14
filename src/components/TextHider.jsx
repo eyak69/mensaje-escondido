@@ -60,7 +60,10 @@ const TextHider = () => {
 
         const wordCount = countWords(secretMessage);
 
-        if (wordCount > 2) {
+        // Check App Mode (free vs payment)
+        const appMode = import.meta.env.VITE_APP_MODE || 'payment';
+
+        if (wordCount > 2 && appMode !== 'free') {
             // Save draft before redirecting/paying
             localStorage.setItem('pending_public_text', publicText);
             localStorage.setItem('pending_secret_message', secretMessage);
