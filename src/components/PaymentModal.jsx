@@ -11,10 +11,15 @@ const PaymentModal = ({ onClose, onPaymentSuccess }) => {
             locale: 'es-AR'
         });
 
-        // Fetch Preference ID from our Backend
+        // Fetch Preference ID from our Backend (API Route)
         const createPreference = async () => {
             try {
-                const response = await fetch("http://localhost:3000/create_preference", {
+                // Use relative path for Vercel (serves both front and api) or fallback to local server
+                const apiUrl = import.meta.env.PROD
+                    ? '/api/create_preference'
+                    : 'http://localhost:3000/create_preference';
+
+                const response = await fetch(apiUrl, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
