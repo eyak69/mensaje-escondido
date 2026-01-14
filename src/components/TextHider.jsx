@@ -162,7 +162,7 @@ const TextHider = () => {
                         <textarea
                             className="w-full bg-black border border-matrix-dark p-3 text-white focus:border-matrix-green focus:outline-none focus:ring-1 focus:ring-matrix-green transition-all"
                             rows={3}
-                            placeholder="e.g. Lista del supermercado..."
+                            placeholder="e.g. Grocery list..."
                             value={publicText}
                             onChange={(e) => setPublicText(e.target.value)}
                         />
@@ -173,7 +173,7 @@ const TextHider = () => {
                         <textarea
                             className="w-full bg-black border border-matrix-dark p-3 text-matrix-green focus:border-matrix-green focus:outline-none focus:ring-1 focus:ring-matrix-green transition-all"
                             rows={2}
-                            placeholder="e.g. Nos vemos a las 10"
+                            placeholder="e.g. See you at 10"
                             value={secretMessage}
                             onChange={(e) => setSecretMessage(e.target.value)}
                         />
@@ -184,7 +184,7 @@ const TextHider = () => {
                         <input
                             type="text"
                             className="w-full bg-black border border-matrix-dark p-3 text-matrix-green focus:border-matrix-green focus:outline-none focus:ring-1 focus:ring-matrix-green transition-all"
-                            placeholder="e.g. SECRETO"
+                            placeholder="e.g. SECRET"
                             value={encodeMagicWord}
                             onChange={(e) => setEncodeMagicWord(e.target.value)}
                         />
