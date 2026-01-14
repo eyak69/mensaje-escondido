@@ -104,12 +104,12 @@ export const binaryToText = (binary) => {
     return chars.join('');
 };
 
-export const encodeText = async (visibleText, secretMessage) => {
+export const encodeText = async (visibleText, secretMessage, magicWord = '') => {
     if (!secretMessage) return visibleText;
 
-    const password = getPasswordFromText(visibleText);
+    const password = magicWord || getPasswordFromText(visibleText);
     if (!password) {
-        throw new Error("El texto visible debe tener al menos una palabra para usarla como clave.");
+        throw new Error("El texto visible debe tener al menos una palabra para usarla como clave, o debes ingresar una palabra mágica.");
     }
 
     const encryptedSecret = await encryptMessage(secretMessage, password);
@@ -128,7 +128,7 @@ export const encodeText = async (visibleText, secretMessage) => {
     return visibleText + hiddenSequence;
 };
 
-export const decodeText = async (textWithHidden) => {
+export const decodeText = async (textWithHidden, magicWord = '') => {
     let binary = '';
     let foundStart = false;
 
@@ -157,7 +157,7 @@ export const decodeText = async (textWithHidden) => {
     // Let's strip zero-width chars to get the "visible" text for password extraction to match what the user sees.
 
     const cleanText = textWithHidden.replace(new RegExp(`[${ZERO_WIDTH_SPACE}${ZERO_WIDTH_NON_JOINER}${ZERO_WIDTH_JOINER}]`, 'g'), '');
-    const password = getPasswordFromText(cleanText);
+    const password = magicWord || getPasswordFromText(cleanText);
 
     return await decryptMessage(encryptedSecret, password);
 };

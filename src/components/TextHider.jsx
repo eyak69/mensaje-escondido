@@ -11,10 +11,12 @@ const TextHider = () => {
     // Encode State
     const [publicText, setPublicText] = useState('');
     const [secretMessage, setSecretMessage] = useState('');
+    const [encodeMagicWord, setEncodeMagicWord] = useState(''); // State for encode magic word
     const [encodedResult, setEncodedResult] = useState('');
 
     // Decode State
     const [textToDecode, setTextToDecode] = useState('');
+    const [decodeMagicWord, setDecodeMagicWord] = useState(''); // State for decode magic word
     const [decodedResult, setDecodedResult] = useState('');
 
     // Monetization
@@ -32,14 +34,17 @@ const TextHider = () => {
             if (savedPublic && savedSecret) {
                 setPublicText(savedPublic);
                 setSecretMessage(savedSecret);
+                const savedMagicWord = localStorage.getItem('pending_magic_word'); // Retrieve saved magic word
+                if (savedMagicWord) setEncodeMagicWord(savedMagicWord);
 
                 // Execute encoding immediately
-                encodeText(savedPublic, savedSecret)
+                encodeText(savedPublic, savedSecret, savedMagicWord || '') // Pass magic word
                     .then(result => {
                         setEncodedResult(result);
                         // Clean up
                         localStorage.removeItem('pending_public_text');
                         localStorage.removeItem('pending_secret_message');
+                        localStorage.removeItem('pending_magic_word'); // Clean up magic word
                         window.history.replaceState({}, document.title, window.location.pathname);
                         showToast("PAYMENT_ACCEPTED // MESSAGE_GENERATED");
                     })
@@ -61,18 +66,21 @@ const TextHider = () => {
         const wordCount = countWords(secretMessage);
 
         // Check App Mode (free vs payment)
+        // Check App Mode (free vs payment)
         const appMode = import.meta.env.VITE_APP_MODE || 'payment';
+        console.log('DEBUG: App Mode:', appMode, 'Limit check:', wordCount > 2);
 
         if (wordCount > 2 && appMode !== 'free') {
             // Save draft before redirecting/paying
             localStorage.setItem('pending_public_text', publicText);
             localStorage.setItem('pending_secret_message', secretMessage);
+            localStorage.setItem('pending_magic_word', encodeMagicWord); // Save magic word
             setShowPaymentModal(true);
             return;
         }
 
         try {
-            const result = await encodeText(publicText, secretMessage);
+            const result = await encodeText(publicText, secretMessage, encodeMagicWord); // Pass magic word
             setEncodedResult(result);
         } catch (error) {
             console.error(error);
@@ -85,13 +93,13 @@ const TextHider = () => {
         setShowPaymentModal(false);
         // Automatically retry encoding
         setTimeout(() => {
-            encodeText(publicText, secretMessage).then(setEncodedResult);
+            encodeText(publicText, secretMessage, encodeMagicWord).then(setEncodedResult); // Pass magic word
         }, 100);
     };
 
     const handleDecode = async () => {
         if (!textToDecode) return;
-        const result = await decodeText(textToDecode);
+        const result = await decodeText(textToDecode, decodeMagicWord); // Pass magic word for decoding if provided
         setDecodedResult(result || 'NO_HIDDEN_MESSAGE_FOUND_OR_DECRYPTION_FAILED');
     };
 
@@ -110,11 +118,13 @@ const TextHider = () => {
     const clearEncode = () => {
         setPublicText('');
         setSecretMessage('');
+        setEncodeMagicWord('');
         setEncodedResult('');
     };
 
     const clearDecode = () => {
         setTextToDecode('');
+        setDecodeMagicWord('');
         setDecodedResult('');
     };
 
@@ -169,6 +179,18 @@ const TextHider = () => {
                         />
                     </div>
 
+                    <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-1">Magic Word (Optional)</label>
+                        <input
+                            type="text"
+                            className="w-full bg-black border border-matrix-dark p-3 text-matrix-green focus:border-matrix-green focus:outline-none focus:ring-1 focus:ring-matrix-green transition-all"
+                            placeholder="e.g. SECRETO"
+                            value={encodeMagicWord}
+                            onChange={(e) => setEncodeMagicWord(e.target.value)}
+                        />
+                        <p className="text-[10px] text-gray-500 mt-1">* If set, this word is required to decode the message.</p>
+                    </div>
+
                     <div className="flex gap-2">
                         <button
                             onClick={handleEncode}
@@ -214,6 +236,17 @@ const TextHider = () => {
                             placeholder="Paste the text here..."
                             value={textToDecode}
                             onChange={(e) => setTextToDecode(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-1">Magic Word (If used)</label>
+                        <input
+                            type="text"
+                            className="w-full bg-black border border-matrix-dark p-3 text-matrix-green focus:border-matrix-green focus:outline-none focus:ring-1 focus:ring-matrix-green transition-all"
+                            placeholder="Enter magic word if required..."
+                            value={decodeMagicWord}
+                            onChange={(e) => setDecodeMagicWord(e.target.value)}
                         />
                     </div>
 
