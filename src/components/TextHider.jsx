@@ -13,6 +13,7 @@ const TextHider = () => {
     const [secretMessage, setSecretMessage] = useState('');
     const [encodeMagicWord, setEncodeMagicWord] = useState(''); // State for encode magic word
     const [encodedResult, setEncodedResult] = useState('');
+    const [encodingError, setEncodingError] = useState(null); // New error state
 
     // Decode State
     const [textToDecode, setTextToDecode] = useState('');
@@ -62,8 +63,19 @@ const TextHider = () => {
 
     const handleEncode = async () => {
         if (!publicText || !secretMessage) return;
+        setEncodingError(null);
 
         const wordCount = countWords(secretMessage);
+
+        // Validation: Check Ratio
+        // We roughly estimate hidden size. Encryption adds overhead.
+        // Let's say overhead is ~32 bytes + secret len.
+        // We want to avoid > 50 hidden chars per visible char to prevent extreme lag or issues.
+        // A safer heuristic: visualText should not be just 1 char for a novel.
+        if (publicText.length < 3 && secretMessage.length > 10) {
+            setEncodingError("COVER_TEXT_TOO_SHORT_FOR_PAYLOAD");
+            return;
+        }
 
         // Check App Mode (free vs payment)
         // Check App Mode (free vs payment)
@@ -84,7 +96,8 @@ const TextHider = () => {
             setEncodedResult(result);
         } catch (error) {
             console.error(error);
-            alert(error.message);
+            // alert(error.message); // Replaced with inline error
+            setEncodingError(error.message);
             showToast(`ERROR: ${error.message}`);
         }
     };
@@ -120,6 +133,7 @@ const TextHider = () => {
         setSecretMessage('');
         setEncodeMagicWord('');
         setEncodedResult('');
+        setEncodingError(null);
     };
 
     const clearDecode = () => {
@@ -164,7 +178,10 @@ const TextHider = () => {
                             rows={3}
                             placeholder="e.g. Grocery list..."
                             value={publicText}
-                            onChange={(e) => setPublicText(e.target.value)}
+                            onChange={(e) => {
+                                setPublicText(e.target.value);
+                                setEncodingError(null);
+                            }}
                         />
                     </div>
 
@@ -175,7 +192,10 @@ const TextHider = () => {
                             rows={2}
                             placeholder="e.g. See you at 10"
                             value={secretMessage}
-                            onChange={(e) => setSecretMessage(e.target.value)}
+                            onChange={(e) => {
+                                setSecretMessage(e.target.value);
+                                setEncodingError(null);
+                            }}
                         />
                     </div>
 
@@ -190,6 +210,13 @@ const TextHider = () => {
                         />
                         <p className="text-[10px] text-gray-500 mt-1">* If set, this word is required to decode the message.</p>
                     </div>
+
+                    {encodingError && (
+                        <div className="bg-red-900/20 border border-red-500 p-3 flex items-start gap-2 animate-pulse">
+                            <span className="text-red-500 font-bold">⚠ ERROR:</span>
+                            <p className="text-red-400 text-xs">{encodingError}</p>
+                        </div>
+                    )}
 
                     <div className="flex gap-2">
                         <button
@@ -208,10 +235,10 @@ const TextHider = () => {
                         </button>
                     </div>
 
-                    {encodedResult && (
+                    {encodedResult && !encodingError && (
                         <div className="mt-6 p-4 border border-matrix-green bg-matrix-green/5 relative group">
                             <label className="absolute -top-3 left-2 bg-black px-2 text-xs text-matrix-green">RESULT_GENERATED</label>
-                            <p className="font-sans text-gray-300 mb-2 whitespace-pre-wrap">{encodedResult}</p>
+                            <p className="font-sans text-gray-300 mb-2 whitespace-pre-wrap leading-relaxed">{encodedResult}</p>
                             <div className="text-right">
                                 <button
                                     onClick={() => copyToClipboard(encodedResult)}
@@ -221,7 +248,7 @@ const TextHider = () => {
                                 </button>
                             </div>
                             <p className="mt-2 text-[10px] text-gray-500 text-center">
-                                * Looks identical, but contains hidden data. Paste in WhatsApp/Telegram.
+                                * Contains hidden data interleaved within the text. Safe for messaging apps.
                             </p>
                         </div>
                     )}
