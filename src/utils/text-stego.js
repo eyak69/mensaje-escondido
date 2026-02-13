@@ -12,9 +12,12 @@ const getPasswordFromText = (text) => {
 
 const getKeyMaterial = (password) => {
     const enc = new TextEncoder();
+    // Normalize password to NFC to ensure consistent key derivation across platforms (e.g. iOS vs Android/Windows)
+    // This fixes the bug where iOS (using NFD) couldn't decrypt messages created on Windows/Android (using NFC)
+    const normalizedPassword = password.normalize('NFC');
     return window.crypto.subtle.importKey(
         "raw",
-        enc.encode(password),
+        enc.encode(normalizedPassword),
         { name: "PBKDF2" },
         false,
         ["deriveBits", "deriveKey"]
