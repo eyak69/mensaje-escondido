@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { encodeText, decodeText } from '../utils/text-stego';
+import { encodeText, decodeText, extractPasswordFromStegoText } from '../utils/text-stego';
 import { Copy, X } from 'lucide-react'; // Removing unused Plus, adding X just in case or we rely on PaymentModal's internal Lucide
 import PaymentModal from './PaymentModal';
 // I'll stick to text to avoid installing lucide-react if I didn't plan it, but I can add it easily or use SVGs.
@@ -275,6 +275,11 @@ const TextHider = () => {
                             value={decodeMagicWord}
                             onChange={(e) => setDecodeMagicWord(e.target.value)}
                         />
+                        <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                            * System uses: <span className="text-matrix-green font-bold truncate max-w-[200px] inline-block align-bottom">
+                                {decodeMagicWord || (textToDecode ? extractPasswordFromStegoText(textToDecode) : "LAST_VISIBLE_WORD")}
+                            </span>
+                        </p>
                     </div>
 
                     <div className="flex gap-2">

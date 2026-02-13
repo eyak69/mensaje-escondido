@@ -4,10 +4,17 @@ const ZERO_WIDTH_NON_JOINER = '\u200C'; // Represents 1
 const ZERO_WIDTH_JOINER = '\u200D'; // Delimiter (start/end)
 
 // Utilities for encryption
-const getPasswordFromText = (text) => {
+export const getPasswordFromText = (text) => {
     if (!text) return '';
     const words = text.trim().split(/\s+/);
     return words[words.length - 1];
+};
+
+export const extractPasswordFromStegoText = (textWithHidden) => {
+    if (!textWithHidden) return '';
+    // Strip ZWCs to get original visible text
+    const cleanText = textWithHidden.replace(new RegExp(`[${ZERO_WIDTH_SPACE}${ZERO_WIDTH_NON_JOINER}${ZERO_WIDTH_JOINER}]`, 'g'), '');
+    return getPasswordFromText(cleanText);
 };
 
 const getKeyMaterial = (password) => {
