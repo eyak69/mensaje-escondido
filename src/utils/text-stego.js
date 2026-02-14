@@ -147,22 +147,35 @@ export const encodeText = async (visibleText, secretMessage, magicWord = '') => 
     const totalVisible = visibleChars.length;
     const totalHidden = hiddenChars.length;
 
-    // Calculate how many hidden chars to put after each visible char
-    const basePerChar = Math.floor(totalHidden / totalVisible);
-    const remainder = totalHidden % totalVisible;
+    // TAIL PROTECTION LOGIC (Fix for iPhone copy/paste truncation)
+    // We want to avoid putting hidden characters after the VERY LAST visible character,
+    // because many systems strip trailing invisible characters.
+    // So we distribute the hidden payload across the first (N-1) visible characters.
+
+    // If text is "Hola" (4 chars), we use 3 slots (after H, after o, after l).
+    // The last char 'a' will have NO hidden data after it, acting as a visible anchor.
+
+    const safeSlots = (totalVisible > 1) ? totalVisible - 1 : 1;
+
+    // Calculate distribution for the safe slots
+    const basePerChar = Math.floor(totalHidden / safeSlots);
+    const remainder = totalHidden % safeSlots;
 
     let hiddenIndex = 0;
 
     for (let i = 0; i < totalVisible; i++) {
         result += visibleChars[i];
 
-        // Determine how many hidden chars to append here
-        // Distribute the remainder over the first 'remainder' visible chars
-        let count = basePerChar + (i < remainder ? 1 : 0);
+        // Only append hidden data if we are within the "safe slots" (i < safeSlots)
+        // OR if there is leftover data (fallback)
+        if (i < safeSlots) {
+            // Distribute the remainder over the first 'remainder' safe slots
+            let count = basePerChar + (i < remainder ? 1 : 0);
 
-        if (hiddenIndex < totalHidden) {
-            result += hiddenChars.slice(hiddenIndex, hiddenIndex + count).join('');
-            hiddenIndex += count;
+            if (hiddenIndex < totalHidden) {
+                result += hiddenChars.slice(hiddenIndex, hiddenIndex + count).join('');
+                hiddenIndex += count;
+            }
         }
     }
 
